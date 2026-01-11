@@ -1,36 +1,143 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Personal Portfolio CMS
 
-## Getting Started
+Aplikasi portfolio pribadi dengan fitur CMS yang dibangun menggunakan Next.js, Shadcn UI, dan Firebase Firestore.
 
-First, run the development server:
+## 🚀 Fitur
+
+- **Profile Management**: Kelola informasi profil pribadi dan upload foto
+- **Education**: Dokumentasi riwayat pendidikan
+- **Experience**: Catat pengalaman kerja, magang, organisasi, dan mengajar
+- **Certifications**: Simpan sertifikasi dan penghargaan
+- **Mode Switching**: Berbagai mode tampilan (Full, Teacher, Developer, Researcher)
+- **CMS-like Interface**: Kelola semua data dengan mudah
+
+## 📋 Prerequisites
+
+- Node.js 18+ 
+- npm atau yarn
+- Firebase account
+
+## 🛠️ Setup & Installation
+
+### 1. Install Dependencies
+
+```bash
+npm install
+```
+
+### 2. Setup Firebase
+
+1. Buat project di [Firebase Console](https://console.firebase.google.com/)
+2. Aktifkan Firestore Database
+3. Aktifkan Storage untuk upload foto
+4. Copy Firebase config credentials
+
+### 3. Environment Variables
+
+Edit file `.env.local` dan isi dengan credentials Firebase Anda:
+
+```env
+NEXT_PUBLIC_FIREBASE_API_KEY=your-api-key
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=your-project-id
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your-project.appspot.com
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your-sender-id
+NEXT_PUBLIC_FIREBASE_APP_ID=your-app-id
+```
+
+### 4. Run Development Server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Buka [http://localhost:3000](http://localhost:3000) di browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 📁 Struktur Project
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+personal-app/
+├── app/                    # Next.js App Router
+│   ├── page.tsx           # Home page
+│   ├── layout.tsx         # Root layout
+│   ├── profile/           # Profile management
+│   ├── education/         # Education management
+│   ├── experience/        # Experience management
+│   ├── certifications/    # Certifications management
+│   └── settings/          # Settings
+├── components/            # React components
+│   ├── ui/               # Shadcn UI components
+│   ├── navbar.tsx        # Navigation bar
+│   └── mode-switcher.tsx # Portfolio mode switcher
+├── lib/                   # Utilities & helpers
+│   ├── firebase.ts       # Firebase config
+│   ├── firestore.ts      # Firestore operations
+│   └── utils.ts          # Utility functions
+└── types/                 # TypeScript types
+    └── portfolio.ts       # Data models
+```
 
-## Learn More
+## 🎨 Tech Stack
 
-To learn more about Next.js, take a look at the following resources:
+- **Framework**: Next.js 16 (App Router)
+- **UI Library**: Shadcn UI + Radix UI
+- **Styling**: Tailwind CSS v4
+- **Database**: Firebase Firestore
+- **Storage**: Firebase Storage
+- **Language**: TypeScript
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 📝 Data Models
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### PersonalInfo
+- name, title, bio
+- contact info (email, phone, location)
+- photo URL
+- social links
 
-## Deploy on Vercel
+### Education
+- institution, degree, field of study
+- date range
+- grade, description
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Experience
+- title, organization
+- type (work, internship, organization, teaching)
+- date range
+- description, skills, location
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Certification
+- name, issuer
+- issue date, expiry date
+- credential ID & URL
+
+## 🔄 Mode Switching
+
+Aplikasi mendukung berbagai mode tampilan:
+
+- **Full**: Tampilkan semua data
+- **Teacher**: Hanya pengalaman mengajar
+- **Developer**: Fokus pada pengalaman development
+- **Researcher**: Riset dan publikasi
+
+## 🚧 Next Steps
+
+Untuk mengembangkan aplikasi lebih lanjut:
+
+1. **Implementasi CRUD Forms**: Buat form lengkap untuk setiap section
+2. **Upload Foto**: Implementasi upload dan preview foto profil
+3. **Data Filtering**: Filter experience berdasarkan mode yang dipilih
+4. **Authentication**: Tambah authentication untuk protect admin pages
+5. **Public View**: Buat halaman public untuk menampilkan portfolio
+6. **Export Feature**: Export portfolio ke PDF atau format lain
+
+## 📚 Resources
+
+- [Next.js Documentation](https://nextjs.org/docs)
+- [Shadcn UI](https://ui.shadcn.com/)
+- [Firebase Documentation](https://firebase.google.com/docs)
+- [Tailwind CSS](https://tailwindcss.com/docs)
+
+## 📄 License
+
+MIT
+
