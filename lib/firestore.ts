@@ -11,11 +11,14 @@ import {
   where,
 } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import type {
+import {
   PersonalInfo,
   Education,
   Experience,
   Certification,
+  Skill,
+  Project,
+  ContactMessage,
 } from '@/types/portfolio';
 
 const COLLECTIONS = {
@@ -23,6 +26,9 @@ const COLLECTIONS = {
   education: 'education',
   experiences: 'experiences',
   certifications: 'certifications',
+  skills: 'skills',
+  projects: 'projects',
+  contactMessages: 'contactMessages',
 };
 
 // Personal Info
@@ -114,10 +120,81 @@ export const deleteCertification = async (id: string): Promise<void> => {
   await updateDoc(docRef, { isActive: false });
 };
 
+// Skills
+export const getSkills = async (): Promise<Skill[]> => {
+  const q = query(collection(db, COLLECTIONS.skills), where('isActive', '==', true));
+  const querySnapshot = await getDocs(q);
+  return querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Skill));
+};
+
+export const addSkill = async (data: Omit<Skill, 'id'>): Promise<string> => {
+  const docRef = doc(collection(db, COLLECTIONS.skills));
+  await setDoc(docRef, data);
+  return docRef.id;
+};
+
+export const updateSkill = async (id: string, data: Partial<Skill>): Promise<void> => {
+  const docRef = doc(db, COLLECTIONS.skills, id);
+  await updateDoc(docRef, data);
+};
+
+export const deleteSkill = async (id: string): Promise<void> => {
+  const docRef = doc(db, COLLECTIONS.skills, id);
+  await updateDoc(docRef, { isActive: false });
+};
+
+// Projects
+export const getProjects = async (category?: string): Promise<Project[]> => {
+  let q = query(collection(db, COLLECTIONS.projects), where('isActive', '==', true));
+  
+  if (category) {
+    q = query(q, where('category', '==', category));
+  }
+  
+  const querySnapshot = await getDocs(q);
+  return querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Project));
+};
+
+export const addProject = async (data: Omit<Project, 'id'>): Promise<string> => {
+  const docRef = doc(collection(db, COLLECTIONS.projects));
+  await setDoc(docRef, data);
+  return docRef.id;
+};
+
+export const updateProject = async (id: string, data: Partial<Project>): Promise<void> => {
+  const docRef = doc(db, COLLECTIONS.projects, id);
+  await updateDoc(docRef, data);
+};
+
+export const deleteProject = async (id: string): Promise<void> => {
+  const docRef = doc(db, COLLECTIONS.projects, id);
+  await updateDoc(docRef, { isActive: false });
+};
+
 // File Upload
 export const uploadProfilePhoto = async (file: File): Promise<string> => {
   const storageRef = ref(storage, `profile-photos/${Date.now()}_${file.name}`);
   await uploadBytes(storageRef, file);
   const downloadURL = await getDownloadURL(storageRef);
   return downloadURL;
+};
+
+export const uploadProjectImage = async (file: File): Promise<string> => {
+  const storageRef = ref(storage, `project-images/${Date.now()}_${file.name}`);
+  await uploadBytes(storageRef, file);
+  const downloadURL = await getDownloadURL(storageRef);
+  return downloadURL;
+};
+
+// Contact Messages
+export const addContactMessage = async (data: Omit<ContactMessage, 'id'>): Promise<string> => {
+  const docRef = doc(collection(db, COLLECTIONS.contactMessages));
+  await setDoc(docRef, data);
+  return docRef.id;
+};
+
+export const getContactMessages = async (): Promise<ContactMessage[]> => {
+  const q = query(collection(db, COLLECTIONS.contactMessages));
+  const querySnapshot = await getDocs(q);
+  return querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as ContactMessage));
 };

@@ -1,6 +1,7 @@
 import { initializeApp, getApps } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
+import { getAuth } from 'firebase/auth';
 
 // Use static accesses so Next.js can inline env values in the client bundle
 const apiKey = process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
@@ -36,6 +37,7 @@ const firebaseConfig = {
 
 // Initialize Firebase once
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
+export const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
 

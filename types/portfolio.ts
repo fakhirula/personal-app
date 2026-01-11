@@ -57,6 +57,37 @@ export interface Certification {
   isActive: boolean;
 }
 
+export interface Skill {
+  id?: string;
+  name: string;
+  icon: string; // icon name from lucide-react
+  description?: string;
+  isActive: boolean;
+}
+
+export interface Project {
+  id?: string;
+  title: string;
+  description: string;
+  category: string;
+  imageURL?: string;
+  projectURL?: string;
+  githubURL?: string;
+  tags?: string[];
+  completedDate?: string;
+  isActive: boolean;
+}
+
+export interface ContactMessage {
+  id?: string;
+  name: string;
+  email: string;
+  phone?: string;
+  message: string;
+  timestamp: string;
+  isRead: boolean;
+}
+
 export interface PortfolioData {
   personalInfo: PersonalInfo;
   education: Education[];
