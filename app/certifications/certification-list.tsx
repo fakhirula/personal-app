@@ -5,10 +5,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
+import { Edit, Trash2 } from 'lucide-react';
 import type { Certification } from '@/types/portfolio';
 import { getCertifications, deleteCertification } from '@/lib/firestore';
 
-export function CertificationList() {
+interface CertificationListProps {
+  onEdit?: (certification: Certification) => void;
+}
+
+export function CertificationList({ onEdit }: CertificationListProps = {}) {
   const [items, setItems] = useState<Certification[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -66,7 +71,14 @@ export function CertificationList() {
                   )}
                 </div>
                 <div className="flex gap-2">
-                  <Button variant="ghost" onClick={() => deactivate(cert.id!)}>Archive</Button>
+                  {onEdit && (
+                    <Button variant="outline" size="sm" onClick={() => onEdit(cert)}>
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                  )}
+                  <Button variant="ghost" size="sm" onClick={() => deactivate(cert.id!)}>
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 </div>
               </div>
             ))}

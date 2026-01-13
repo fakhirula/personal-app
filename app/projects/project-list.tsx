@@ -5,12 +5,16 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { ExternalLink, Github } from 'lucide-react';
+import { ExternalLink, Github, Edit, Trash2 } from 'lucide-react';
 import type { Project } from '@/types/portfolio';
 import { getProjects, deleteProject } from '@/lib/firestore';
 import Image from 'next/image';
 
-export function ProjectList() {
+interface ProjectListProps {
+  onEdit?: (project: Project) => void;
+}
+
+export function ProjectList({ onEdit }: ProjectListProps) {
   const [items, setItems] = useState<Project[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -65,13 +69,24 @@ export function ProjectList() {
                       <h3 className="font-semibold">{project.title}</h3>
                       <Badge variant="secondary" className="text-xs mt-1">{project.category}</Badge>
                     </div>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => deactivate(project.id!)}
-                    >
-                      Archive
-                    </Button>
+                    <div className="flex gap-2">
+                      {onEdit && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => onEdit(project)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                      )}
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => deactivate(project.id!)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                   {project.description && (
                     <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{project.description}</p>

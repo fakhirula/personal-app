@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/select';
 import { toast } from 'sonner';
 import type { Skill } from '@/types/portfolio';
-import { addSkill } from '@/lib/firestore';
+import { addSkill, updateSkill } from '@/lib/firestore';
 import {
   Code,
   Database,
@@ -30,6 +30,7 @@ import {
   Settings,
   BookOpen,
   Brain,
+  X,
 } from 'lucide-react';
 
 const ICON_OPTIONS = [
@@ -62,7 +63,13 @@ const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
   Brain,
 };
 
-export function SkillForm({ onAdded }: { onAdded: () => void }) {
+interface SkillFormProps {
+  onAdded: () => void;
+  editingSkill?: Skill | null;
+  onCancelEdit?: () => void;
+}
+
+export function SkillForm({ onAdded, editingSkill, onCancelEdit }: SkillFormProps) {
   const [form, setForm] = useState<Omit<Skill, 'id'>>({
     name: '',
     icon: 'Code',
@@ -71,25 +78,54 @@ export function SkillForm({ onAdded }: { onAdded: () => void }) {
   });
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    if (editingSkill) {
+      setForm({
+        name: editingSkill.name,
+        icon: editingSkill.icon,
+        description: editingSkill.description || '',
+        isActive: editingSkill.isActive,
+      });
+    }
+  }, [editingSkill]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
-      await addSkill(form);
-      toast.success('Skill added');
+      if (editingSkill?.id) {
+        await updateSkill(editingSkill.id, form);
+        toast.success('Skill updated');
+      } else {
+        await addSkill(form);
+        toast.success('Skill added');
+      }
       setForm({ name: '', icon: 'Code', description: '', isActive: true });
       onAdded();
+      if (onCancelEdit) onCancelEdit();
     } catch (err) {
-      toast.error(`Failed to add skill`);
+      toast.error(editingSkill ? 'Failed to update skill' : 'Failed to add skill');
     } finally {
       setLoading(false);
     }
   };
 
+  const handleCancel = () => {
+    setForm({ name: '', icon: 'Code', description: '', isActive: true });
+    if (onCancelEdit) onCancelEdit();
+  };
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Add Skill</CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle>{editingSkill ? 'Edit Skill' : 'Add Skill'}</CardTitle>
+          {editingSkill && onCancelEdit && (
+            <Button type="button" variant="ghost" size="sm" onClick={handleCancel}>
+              <X className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -138,9 +174,14 @@ export function SkillForm({ onAdded }: { onAdded: () => void }) {
             />
           </div>
 
-          <div className="flex justify-end">
+          <div className="flex justify-end gap-2">
+            {editingSkill && onCancelEdit && (
+              <Button type="button" variant="outline" onClick={handleCancel}>
+                Cancel
+              </Button>
+            )}
             <Button type="submit" disabled={loading}>
-              {loading ? 'Saving...' : 'Add Skill'}
+              {loading ? 'Saving...' : (editingSkill ? 'Update Skill' : 'Add Skill')}
             </Button>
           </div>
         </form>

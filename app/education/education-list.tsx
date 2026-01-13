@@ -5,10 +5,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
+import { Edit, Trash2 } from 'lucide-react';
 import type { Education } from '@/types/portfolio';
 import { getEducation, updateEducation, deleteEducation } from '@/lib/firestore';
 
-export function EducationList() {
+interface EducationListProps {
+  onEdit?: (education: Education) => void;
+}
+
+export function EducationList({ onEdit }: EducationListProps) {
   const [items, setItems] = useState<Education[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -69,8 +74,15 @@ export function EducationList() {
                 {edu.description && (
                   <p className="text-sm mt-2">{edu.description}</p>
                 )}
-                <div className="flex justify-end">
-                  <Button variant="ghost" size="sm" onClick={() => deactivate(edu.id!)}>Archive</Button>
+                <div className="flex justify-end gap-2">
+                  {onEdit && (
+                    <Button size="sm" variant="outline" onClick={() => onEdit(edu)}>
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                  )}
+                  <Button size="sm" variant="ghost" onClick={() => deactivate(edu.id!)}>
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 </div>
               </div>
             ))}

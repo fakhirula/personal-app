@@ -28,6 +28,7 @@ export interface Education {
   grade?: string;
   location?: string;
   description?: string;
+  certificateURL?: string;
   isActive: boolean;
 }
 
@@ -42,6 +43,7 @@ export interface Experience {
   description: string;
   skills?: string[];
   location?: string;
+  logoURL?: string;
   isActive: boolean;
 }
 
@@ -54,6 +56,7 @@ export interface Certification {
   credentialID?: string;
   credentialURL?: string;
   description?: string;
+  certificateImageURL?: string;
   isActive: boolean;
 }
 

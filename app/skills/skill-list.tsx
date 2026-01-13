@@ -19,6 +19,8 @@ import {
   Settings,
   BookOpen,
   Brain,
+  Edit,
+  Trash2,
 } from 'lucide-react';
 
 const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -36,7 +38,11 @@ const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
   Brain,
 };
 
-export function SkillList() {
+interface SkillListProps {
+  onEdit?: (skill: Skill) => void;
+}
+
+export function SkillList({ onEdit }: SkillListProps = {}) {
   const [items, setItems] = useState<Skill[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -91,13 +97,16 @@ export function SkillList() {
                       )}
                     </div>
                   </div>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => deactivate(skill.id!)}
-                  >
-                    Archive
-                  </Button>
+                  <div className="flex gap-2">
+                    {onEdit && (
+                      <Button variant="outline" size="sm" onClick={() => onEdit(skill)}>
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                    )}
+                    <Button variant="ghost" size="sm" onClick={() => deactivate(skill.id!)}>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               );
             })}

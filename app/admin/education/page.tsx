@@ -1,9 +1,26 @@
 'use client';
 
+import { useState } from 'react';
 import { EducationForm } from '../education/education-form';
 import { EducationList } from '../education/education-list';
+import type { Education } from '@/types/portfolio';
 
 export default function AdminEducationPage() {
+  const [editingEducation, setEditingEducation] = useState<Education | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  const handleEdit = (education: Education) => {
+    setEditingEducation(education);
+  };
+
+  const handleAdded = () => {
+    setRefreshKey(prev => prev + 1);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingEducation(null);
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -11,8 +28,13 @@ export default function AdminEducationPage() {
         <p className="text-muted-foreground">Kelola riwayat pendidikan Anda</p>
       </div>
       <div className="grid gap-6 lg:grid-cols-2">
-        <EducationForm onAdded={() => { /* list auto-refresh on mount; user can refresh by navigating */ }} />
-        <EducationList />
+        <EducationForm 
+          key={editingEducation?.id || 'new'}
+          onAdded={handleAdded}
+          editingEducation={editingEducation}
+          onCancelEdit={handleCancelEdit}
+        />
+        <EducationList key={refreshKey} onEdit={handleEdit} />
       </div>
     </div>
   );

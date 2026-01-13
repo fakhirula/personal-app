@@ -1,18 +1,25 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { Loader2, Upload } from 'lucide-react';
+import { Loader2, Upload, X } from 'lucide-react';
 import type { Project } from '@/types/portfolio';
-import { addProject, uploadProjectImage } from '@/lib/firestore';
+import { addProject, updateProject } from '@/lib/firestore';
+import { uploadImage, getCloudinaryUrl } from '@/lib/cloudinary';
 import Image from 'next/image';
 
-export function ProjectForm({ onAdded }: { onAdded: () => void }) {
+interface ProjectFormProps {
+  onAdded: () => void;
+  editingProject?: Project | null;
+  onCancelEdit?: () => void;
+}
+
+export function ProjectForm({ onAdded, editingProject, onCancelEdit }: ProjectFormProps) {
   const [form, setForm] = useState<Omit<Project, 'id'>>({
     title: '',
     description: '',
@@ -27,6 +34,23 @@ export function ProjectForm({ onAdded }: { onAdded: () => void }) {
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [tagsInput, setTagsInput] = useState('');
+
+  useEffect(() => {
+    if (editingProject) {
+      setForm({
+        title: editingProject.title,
+        description: editingProject.description,
+        category: editingProject.category,
+        imageURL: editingProject.imageURL || '',
+        projectURL: editingProject.projectURL || '',
+        githubURL: editingProject.githubURL || '',
+        tags: editingProject.tags || [],
+        completedDate: editingProject.completedDate || '',
+        isActive: editingProject.isActive,
+      });
+      setTagsInput(editingProject.tags?.join(', ') || '');
+    }
+  }, [editingProject]);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -44,12 +68,18 @@ export function ProjectForm({ onAdded }: { onAdded: () => void }) {
 
     setUploading(true);
     try {
-      const imageURL = await uploadProjectImage(file);
+      const response = await uploadImage(file, 'portfolio/projects');
+      const imageURL = getCloudinaryUrl(response.public_id, {
+        width: 600,
+        height: 400,
+        crop: 'fill',
+        quality: 'auto',
+      });
       setForm({ ...form, imageURL });
-      toast.success('Image uploaded');
+      toast.success('Gambar berhasil diupload!');
     } catch (error) {
       console.error('Error uploading image:', error);
-      toast.error('Failed to upload image');
+      toast.error('Gagal upload gambar');
     } finally {
       setUploading(false);
     }
@@ -64,8 +94,14 @@ export function ProjectForm({ onAdded }: { onAdded: () => void }) {
         .map((tag) => tag.trim())
         .filter((tag) => tag.length > 0);
       
-      await addProject({ ...form, tags });
-      toast.success('Project added');
+      if (editingProject?.id) {
+        await updateProject(editingProject.id, { ...form, tags });
+        toast.success('Project updated');
+      } else {
+        await addProject({ ...form, tags });
+        toast.success('Project added');
+      }
+      
       setForm({
         title: '',
         description: '',
@@ -79,17 +115,46 @@ export function ProjectForm({ onAdded }: { onAdded: () => void }) {
       });
       setTagsInput('');
       onAdded();
+      if (onCancelEdit) onCancelEdit();
     } catch (err) {
-      toast.error('Failed to add project');
+      toast.error(editingProject ? 'Failed to update project' : 'Failed to add project');
     } finally {
       setLoading(false);
     }
   };
 
+  const handleCancel = () => {
+    setForm({
+      title: '',
+      description: '',
+      category: '',
+      imageURL: '',
+      projectURL: '',
+      githubURL: '',
+      tags: [],
+      completedDate: '',
+      isActive: true,
+    });
+    setTagsInput('');
+    if (onCancelEdit) onCancelEdit();
+  };
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Add Project</CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle>{editingProject ? 'Edit Project' : 'Add Project'}</CardTitle>
+          {editingProject && onCancelEdit && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={handleCancel}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -213,9 +278,14 @@ export function ProjectForm({ onAdded }: { onAdded: () => void }) {
             />
           </div>
 
-          <div className="flex justify-end">
+          <div className="flex justify-end gap-2">
+            {editingProject && onCancelEdit && (
+              <Button type="button" variant="outline" onClick={handleCancel}>
+                Cancel
+              </Button>
+            )}
             <Button type="submit" disabled={loading}>
-              {loading ? 'Saving...' : 'Add Project'}
+              {loading ? 'Saving...' : (editingProject ? 'Update Project' : 'Add Project')}
             </Button>
           </div>
         </form>

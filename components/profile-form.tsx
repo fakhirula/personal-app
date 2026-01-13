@@ -8,7 +8,9 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Loader2, Upload, User } from 'lucide-react';
-import { getPersonalInfo, updatePersonalInfo, uploadProfilePhoto } from '@/lib/firestore';
+import { toast } from 'sonner';
+import { getPersonalInfo, updatePersonalInfo } from '@/lib/firestore';
+import { uploadImage, getCloudinaryUrl } from '@/lib/cloudinary';
 import type { PersonalInfo } from '@/types/portfolio';
 
 export function ProfileForm() {
@@ -55,14 +57,12 @@ export function ProfileForm() {
     
     try {
       await updatePersonalInfo(formData);
-      // TODO: Show success toast
-      alert('Profile updated successfully!');
+      toast.success('Profil berhasil diperbarui!');
     } catch (error) {
       const message =
         error instanceof Error ? error.message : 'Unknown error while updating profile';
       console.error('Error updating profile:', error);
-      // TODO: Show error toast
-      alert(`Failed to update profile: ${message}`);
+      toast.error(`Gagal update profil: ${message}`);
     } finally {
       setLoading(false);
     }
@@ -74,25 +74,34 @@ export function ProfileForm() {
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      alert('Please select an image file');
+      toast.error('Please select an image file');
       return;
     }
 
     // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      alert('File size must be less than 5MB');
+      toast.error('File size must be less than 5MB');
       return;
     }
 
     setUploading(true);
     try {
-      const photoURL = await uploadProfilePhoto(file);
-      setFormData({ ...formData, photoURL });
-      // TODO: Show success toast
+      const response = await uploadImage(file, 'portfolio/profile');
+      const photoURL = getCloudinaryUrl(response.public_id, {
+        width: 400,
+        height: 400,
+        crop: 'fill',
+        quality: 'auto',
+      });
+      const updatedData = { ...formData, photoURL };
+      setFormData(updatedData);
+      
+      // Auto-save to Firestore
+      await updatePersonalInfo(updatedData);
+      toast.success('Foto berhasil diupload dan disimpan!');
     } catch (error) {
       console.error('Error uploading photo:', error);
-      // TODO: Show error toast
-      alert('Failed to upload photo');
+      toast.error('Gagal upload foto');
     } finally {
       setUploading(false);
     }

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { toast } from 'sonner';
+import { Edit, Trash2 } from 'lucide-react';
 import type { Experience } from '@/types/portfolio';
 import { getExperiences, deleteExperience } from '@/lib/firestore';
 
@@ -22,7 +23,11 @@ const formatMonthYear = (dateStr: string) => {
   return date.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
 };
 
-export function ExperienceList() {
+interface ExperienceListProps {
+  onEdit?: (experience: Experience) => void;
+}
+
+export function ExperienceList({ onEdit }: ExperienceListProps) {
   const [items, setItems] = useState<Experience[]>([]);
   const [loading, setLoading] = useState(false);
   const [filter, setFilter] = useState('all');
@@ -98,7 +103,14 @@ export function ExperienceList() {
                   )}
                 </div>
                 <div className="flex gap-2">
-                  <Button variant="ghost" onClick={() => deactivate(exp.id!)}>Archive</Button>
+                  {onEdit && (
+                    <Button size="sm" variant="outline" onClick={() => onEdit(exp)}>
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                  )}
+                  <Button size="sm" variant="ghost" onClick={() => deactivate(exp.id!)}>
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 </div>
               </div>
             ))}

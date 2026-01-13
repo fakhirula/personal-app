@@ -187,13 +187,20 @@ export default function Home() {
                 {/* Profile Header */}
                 <div className="pt-8 pb-6 px-6 flex flex-col items-center text-center bg-gradient-to-b from-secondary/20 to-transparent">
                   <div className="mb-4">
-                    <Image 
-                      src="/profile.svg" 
-                      alt="Profile" 
-                      width={100} 
-                      height={100} 
-                      className="rounded-2xl ring-4 ring-background shadow-lg"
-                    />
+                    {profile?.photoURL ? (
+                      <Image 
+                        src={profile.photoURL} 
+                        alt="Profile" 
+                        width={100} 
+                        height={100} 
+                        className="rounded-2xl ring-4 ring-background shadow-lg object-cover"
+                        unoptimized
+                      />
+                    ) : (
+                      <div className="w-[100px] h-[100px] rounded-2xl ring-4 ring-background shadow-lg bg-secondary/50 flex items-center justify-center">
+                        <span className="text-4xl">👤</span>
+                      </div>
+                    )}
                   </div>
                   
                   <h1 className="text-xl font-bold mb-2">{profile?.name}</h1>
@@ -352,6 +359,17 @@ export default function Home() {
                             <div key={exp.id} className="space-y-2">
                               <div className="grid grid-cols-2 gap-4">
                                 <div className="flex items-center gap-2">
+                                  {exp.logoURL && (
+                                    <div className="relative w-8 h-8 flex-shrink-0">
+                                      <Image
+                                        src={exp.logoURL}
+                                        alt={exp.organization}
+                                        fill
+                                        className="object-contain"
+                                        unoptimized
+                                      />
+                                    </div>
+                                  )}
                                   <h3 className="font-semibold">{exp.title}</h3>
                                   <Badge variant="secondary" className="text-xs">{exp.type}</Badge>
                                 </div>
@@ -377,6 +395,17 @@ export default function Home() {
                             <div key={edu.id} className="space-y-2">
                               <div className="grid grid-cols-2 gap-4">
                                 <div>
+                                  {edu.certificateURL && (
+                                    <div className="relative w-12 h-16 mb-2">
+                                      <Image
+                                        src={edu.certificateURL}
+                                        alt={edu.institution}
+                                        fill
+                                        className="object-contain"
+                                        unoptimized
+                                      />
+                                    </div>
+                                  )}
                                   <h3 className="font-semibold">{edu.fieldOfStudy}{edu.grade && `, IPK: ${edu.grade}`}</h3>
                                 </div>
                                 <div className="text-right">
@@ -409,6 +438,7 @@ export default function Home() {
                                   alt={project.title}
                                   fill
                                   className="object-cover"
+                                  unoptimized
                                 />
                               </div>
                             )}
