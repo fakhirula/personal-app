@@ -31,7 +31,7 @@ export function ExperienceForm({ onAdded, editingExperience, onCancelEdit }: Exp
   const [form, setForm] = useState<Omit<Experience, 'id'>>({
     title: '',
     organization: '',
-    type: '',
+    type: 'work',
     startDate: '',
     endDate: '',
     isCurrent: false,
