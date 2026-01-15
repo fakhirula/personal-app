@@ -22,14 +22,22 @@ export default function AdminProjectsPage() {
   };
 
   return (
-    <div className="grid grid-cols-2 gap-6">
-      <ProjectForm 
-        key={editingProject?.id || 'new'}
-        onAdded={handleAdded}
-        editingProject={editingProject}
-        onCancelEdit={handleCancelEdit}
-      />
-      <ProjectList key={refreshKey} onEdit={handleEdit} />
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold">Projects Management</h1>
+        <p className="text-muted-foreground">Kelola portofolio proyek Anda</p>
+      </div>
+      <div className="grid gap-6 lg:grid-cols-2">
+        <div className="h-fit">
+          <ProjectForm 
+            key={editingProject?.id || 'new'}
+            onAdded={handleAdded}
+            editingProject={editingProject}
+            onCancelEdit={handleCancelEdit}
+          />
+        </div>
+        <ProjectList key={refreshKey} onEdit={handleEdit} />
+      </div>
     </div>
   );
 }

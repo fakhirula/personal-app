@@ -29,6 +29,7 @@ export interface Education {
   location?: string;
   description?: string;
   certificateURL?: string;
+  order?: number;
   isActive: boolean;
 }
 
@@ -44,6 +45,7 @@ export interface Experience {
   skills?: string[];
   location?: string;
   logoURL?: string;
+  order?: number;
   isActive: boolean;
 }
 
@@ -57,14 +59,25 @@ export interface Certification {
   credentialURL?: string;
   description?: string;
   certificateImageURL?: string;
+  order?: number;
+  isActive: boolean;
+}
+
+export interface WhatImDoing {
+  id?: string;
+  name: string;
+  icon: string; // icon name from lucide-react
+  description?: string;
+  order?: number;
   isActive: boolean;
 }
 
 export interface Skill {
   id?: string;
   name: string;
-  icon: string; // icon name from lucide-react
   description?: string;
+  level: 'Beginner' | 'Intermediate' | 'Advanced' | 'Expert';
+   order?: number;
   isActive: boolean;
 }
 
@@ -78,6 +91,7 @@ export interface Project {
   githubURL?: string;
   tags?: string[];
   completedDate?: string;
+  order?: number;
   isActive: boolean;
 }
 

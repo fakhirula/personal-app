@@ -17,51 +17,7 @@ import {
 import { toast } from 'sonner';
 import type { Skill } from '@/types/portfolio';
 import { addSkill, updateSkill } from '@/lib/firestore';
-import {
-  Code,
-  Database,
-  Palette,
-  Globe,
-  Server,
-  Smartphone,
-  Layout,
-  GitBranch,
-  Zap,
-  Settings,
-  BookOpen,
-  Brain,
-  X,
-} from 'lucide-react';
-
-const ICON_OPTIONS = [
-  { value: 'Code', label: 'Code' },
-  { value: 'Database', label: 'Database' },
-  { value: 'Palette', label: 'Palette' },
-  { value: 'Globe', label: 'Globe' },
-  { value: 'Server', label: 'Server' },
-  { value: 'Smartphone', label: 'Smartphone' },
-  { value: 'Layout', label: 'Layout' },
-  { value: 'GitBranch', label: 'Git' },
-  { value: 'Zap', label: 'Performance' },
-  { value: 'Settings', label: 'Settings' },
-  { value: 'BookOpen', label: 'Learning' },
-  { value: 'Brain', label: 'AI/ML' },
-];
-
-const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
-  Code,
-  Database,
-  Palette,
-  Globe,
-  Server,
-  Smartphone,
-  Layout,
-  GitBranch,
-  Zap,
-  Settings,
-  BookOpen,
-  Brain,
-};
+import { X } from 'lucide-react';
 
 interface SkillFormProps {
   onAdded: () => void;
@@ -72,8 +28,8 @@ interface SkillFormProps {
 export function SkillForm({ onAdded, editingSkill, onCancelEdit }: SkillFormProps) {
   const [form, setForm] = useState<Omit<Skill, 'id'>>({
     name: '',
-    icon: 'Code',
     description: '',
+    level: 'Beginner',
     isActive: true,
   });
   const [loading, setLoading] = useState(false);
@@ -82,8 +38,8 @@ export function SkillForm({ onAdded, editingSkill, onCancelEdit }: SkillFormProp
     if (editingSkill) {
       setForm({
         name: editingSkill.name,
-        icon: editingSkill.icon,
         description: editingSkill.description || '',
+        level: editingSkill.level,
         isActive: editingSkill.isActive,
       });
     }
@@ -100,7 +56,7 @@ export function SkillForm({ onAdded, editingSkill, onCancelEdit }: SkillFormProp
         await addSkill(form);
         toast.success('Skill added');
       }
-      setForm({ name: '', icon: 'Code', description: '', isActive: true });
+      setForm({ name: '', description: '', level: 'Beginner', isActive: true });
       onAdded();
       if (onCancelEdit) onCancelEdit();
     } catch (err) {
@@ -111,7 +67,7 @@ export function SkillForm({ onAdded, editingSkill, onCancelEdit }: SkillFormProp
   };
 
   const handleCancel = () => {
-    setForm({ name: '', icon: 'Code', description: '', isActive: true });
+    setForm({ name: '', description: '', level: 'Beginner', isActive: true });
     if (onCancelEdit) onCancelEdit();
   };
 
@@ -141,29 +97,6 @@ export function SkillForm({ onAdded, editingSkill, onCancelEdit }: SkillFormProp
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="icon">Icon *</Label>
-            <div className="flex gap-3 items-end">
-              <div className="flex-1">
-                <Select value={form.icon} onValueChange={(value) => setForm({ ...form, icon: value })}>
-                  <SelectTrigger id="icon">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {ICON_OPTIONS.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="p-3 rounded-lg bg-secondary/50">
-                {React.createElement(ICON_MAP[form.icon] || Code, { className: 'h-5 w-5 text-primary' })}
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-2">
             <Label htmlFor="description">Description</Label>
             <Textarea
               id="description"
@@ -172,6 +105,21 @@ export function SkillForm({ onAdded, editingSkill, onCancelEdit }: SkillFormProp
               value={form.description || ''}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="level">Level *</Label>
+            <Select value={form.level} onValueChange={(value) => setForm({ ...form, level: value as 'Beginner' | 'Intermediate' | 'Advanced' | 'Expert' })}>
+              <SelectTrigger id="level">
+                <SelectValue placeholder="Select a level" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Beginner">Beginner</SelectItem>
+                <SelectItem value="Intermediate">Intermediate</SelectItem>
+                <SelectItem value="Advanced">Advanced</SelectItem>
+                <SelectItem value="Expert">Expert</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="flex justify-end gap-2">

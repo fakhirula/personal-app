@@ -28,12 +28,14 @@ export default function AdminExperiencePage() {
         <p className="text-muted-foreground">Kelola pengalaman kerja, magang, organisasi, dan mengajar</p>
       </div>
       <div className="grid gap-6 lg:grid-cols-2">
-        <ExperienceForm 
-          key={editingExperience?.id || 'new'}
-          onAdded={handleAdded}
-          editingExperience={editingExperience}
-          onCancelEdit={handleCancelEdit}
-        />
+        <div className="h-fit">
+          <ExperienceForm 
+            key={editingExperience?.id || 'new'}
+            onAdded={handleAdded}
+            editingExperience={editingExperience}
+            onCancelEdit={handleCancelEdit}
+          />
+        </div>
         <ExperienceList key={refreshKey} onEdit={handleEdit} />
       </div>
     </div>

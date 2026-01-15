@@ -16,6 +16,7 @@ import {
   Zap,
   FolderKanban,
   LogOut,
+  Sparkles,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -24,6 +25,7 @@ const adminNavItems = [
   { href: '/admin/education', label: 'Education', icon: GraduationCap },
   { href: '/admin/experience', label: 'Experience', icon: Briefcase },
   { href: '/admin/certifications', label: 'Certifications', icon: Award },
+  { href: '/admin/what-im-doing', label: 'What I\'m Doing', icon: Sparkles },
   { href: '/admin/skills', label: 'Skills', icon: Zap },
   { href: '/admin/projects', label: 'Projects', icon: FolderKanban },
 ];

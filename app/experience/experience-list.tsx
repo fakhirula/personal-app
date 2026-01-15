@@ -6,9 +6,11 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { Edit, Trash2 } from 'lucide-react';
+import { Edit, Trash2, ArrowUp, ArrowDown } from 'lucide-react';
+import { collection, onSnapshot, query, where } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 import type { Experience } from '@/types/portfolio';
-import { getExperiences, deleteExperience } from '@/lib/firestore';
+import { deleteExperience, updateExperience } from '@/lib/firestore';
 
 const types = [
   { value: 'all', label: 'All' },
@@ -32,31 +34,70 @@ export function ExperienceList({ onEdit }: ExperienceListProps) {
   const [loading, setLoading] = useState(false);
   const [filter, setFilter] = useState('all');
 
-  const refresh = async (type?: string) => {
-    setLoading(true);
-    try {
-      const data = await getExperiences(type && type !== 'all' ? type : undefined);
-      // Sort by startDate descending (newest first)
-      const sorted = data.sort((a, b) => parseInt(b.startDate) - parseInt(a.startDate));
-      setItems(sorted);
-    } catch (err) {
-      toast.error('Failed to load experience');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    refresh();
-  }, []);
+    setLoading(true);
+    const constraints = [where('isActive', '==', true)];
+    if (filter && filter !== 'all') {
+      constraints.push(where('type', '==', filter));
+    }
+    
+    const q = query(collection(db, 'experiences'), ...constraints);
+    const unsub = onSnapshot(
+      q,
+      (snapshot) => {
+        const data = snapshot.docs
+          .map((doc) => ({ id: doc.id, ...doc.data() } as Experience))
+          .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+        setItems(data);
+        setLoading(false);
+      },
+      () => {
+        setLoading(false);
+        toast.error('Failed to load experience');
+      }
+    );
+
+    return () => unsub();
+  }, [filter]);
 
   const deactivate = async (id: string) => {
     try {
       await deleteExperience(id);
       toast.success('Experience archived');
-      refresh(filter);
     } catch {
       toast.error('Failed to archive');
+    }
+  };
+
+  const moveUp = async (index: number) => {
+    if (index === 0) return;
+    try {
+      const itemToMove = items[index];
+      const itemAbove = items[index - 1];
+      
+      const orderAbove = itemAbove.order ?? (index - 1);
+      const orderToMove = itemToMove.order ?? index;
+      
+      await updateExperience(itemToMove.id!, { order: orderAbove });
+      await updateExperience(itemAbove.id!, { order: orderToMove });
+    } catch (err) {
+      toast.error('Failed to move item');
+    }
+  };
+
+  const moveDown = async (index: number) => {
+    if (index === items.length - 1) return;
+    try {
+      const itemToMove = items[index];
+      const itemBelow = items[index + 1];
+      
+      const orderBelow = itemBelow.order ?? (index + 1);
+      const orderToMove = itemToMove.order ?? index;
+      
+      await updateExperience(itemToMove.id!, { order: orderBelow });
+      await updateExperience(itemBelow.id!, { order: orderToMove });
+    } catch (err) {
+      toast.error('Failed to move item');
     }
   };
 
@@ -66,7 +107,7 @@ export function ExperienceList({ onEdit }: ExperienceListProps) {
         <div className="flex items-center justify-between">
           <CardTitle>Experience List</CardTitle>
           <div className="w-48">
-            <Select value={filter} onValueChange={(v) => { setFilter(v); refresh(v); }}>
+            <Select value={filter} onValueChange={(v) => { setFilter(v); }}>
               <SelectTrigger>
                 <SelectValue placeholder="Filter" />
               </SelectTrigger>
@@ -108,6 +149,22 @@ export function ExperienceList({ onEdit }: ExperienceListProps) {
                       <Edit className="h-4 w-4" />
                     </Button>
                   )}
+                  <Button 
+                    size="sm" 
+                    variant="ghost" 
+                    onClick={() => moveUp(items.indexOf(exp))}
+                    disabled={items.indexOf(exp) === 0}
+                  >
+                    <ArrowUp className="h-4 w-4" />
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    variant="ghost" 
+                    onClick={() => moveDown(items.indexOf(exp))}
+                    disabled={items.indexOf(exp) === items.length - 1}
+                  >
+                    <ArrowDown className="h-4 w-4" />
+                  </Button>
                   <Button size="sm" variant="ghost" onClick={() => deactivate(exp.id!)}>
                     <Trash2 className="h-4 w-4" />
                   </Button>

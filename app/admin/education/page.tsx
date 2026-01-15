@@ -28,12 +28,14 @@ export default function AdminEducationPage() {
         <p className="text-muted-foreground">Kelola riwayat pendidikan Anda</p>
       </div>
       <div className="grid gap-6 lg:grid-cols-2">
-        <EducationForm 
-          key={editingEducation?.id || 'new'}
-          onAdded={handleAdded}
-          editingEducation={editingEducation}
-          onCancelEdit={handleCancelEdit}
-        />
+        <div className="h-fit">
+          <EducationForm 
+            key={editingEducation?.id || 'new'}
+            onAdded={handleAdded}
+            editingEducation={editingEducation}
+            onCancelEdit={handleCancelEdit}
+          />
+        </div>
         <EducationList key={refreshKey} onEdit={handleEdit} />
       </div>
     </div>

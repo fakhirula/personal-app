@@ -5,9 +5,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { ExternalLink, Github, Edit, Trash2 } from 'lucide-react';
+import { ExternalLink, Github, Edit, Trash2, ArrowUp, ArrowDown } from 'lucide-react';
+import { collection, onSnapshot, query, where } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 import type { Project } from '@/types/portfolio';
-import { getProjects, deleteProject } from '@/lib/firestore';
+import { deleteProject, updateProject } from '@/lib/firestore';
 import Image from 'next/image';
 
 interface ProjectListProps {
@@ -18,29 +20,65 @@ export function ProjectList({ onEdit }: ProjectListProps) {
   const [items, setItems] = useState<Project[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const refresh = async () => {
-    setLoading(true);
-    try {
-      const data = await getProjects();
-      setItems(data);
-    } catch (err) {
-      toast.error('Failed to load projects');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    refresh();
+    setLoading(true);
+    const q = query(collection(db, 'projects'), where('isActive', '==', true));
+    const unsub = onSnapshot(
+      q,
+      (snapshot) => {
+        const data = snapshot.docs
+          .map((doc) => ({ id: doc.id, ...doc.data() } as Project))
+          .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+        setItems(data);
+        setLoading(false);
+      },
+      () => {
+        setLoading(false);
+        toast.error('Failed to load projects');
+      }
+    );
+
+    return () => unsub();
   }, []);
 
   const deactivate = async (id: string) => {
     try {
       await deleteProject(id);
       toast.success('Project archived');
-      refresh();
     } catch {
       toast.error('Failed to archive');
+    }
+  };
+
+  const moveUp = async (index: number) => {
+    if (index === 0) return;
+    try {
+      const itemToMove = items[index];
+      const itemAbove = items[index - 1];
+      
+      const orderAbove = itemAbove.order ?? (index - 1);
+      const orderToMove = itemToMove.order ?? index;
+      
+      await updateProject(itemToMove.id!, { order: orderAbove });
+      await updateProject(itemAbove.id!, { order: orderToMove });
+    } catch (err) {
+      toast.error('Failed to move item');
+    }
+  };
+
+  const moveDown = async (index: number) => {
+    if (index === items.length - 1) return;
+    try {
+      const itemToMove = items[index];
+      const itemBelow = items[index + 1];
+      
+      const orderBelow = itemBelow.order ?? (index + 1);
+      const orderToMove = itemToMove.order ?? index;
+      
+      await updateProject(itemToMove.id!, { order: orderBelow });
+      await updateProject(itemBelow.id!, { order: orderToMove });
+    } catch (err) {
+      toast.error('Failed to move item');
     }
   };
 
@@ -79,6 +117,22 @@ export function ProjectList({ onEdit }: ProjectListProps) {
                           <Edit className="h-4 w-4" />
                         </Button>
                       )}
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => moveUp(items.indexOf(project))}
+                        disabled={items.indexOf(project) === 0}
+                      >
+                        <ArrowUp className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => moveDown(items.indexOf(project))}
+                        disabled={items.indexOf(project) === items.length - 1}
+                      >
+                        <ArrowDown className="h-4 w-4" />
+                      </Button>
                       <Button
                         size="sm"
                         variant="ghost"

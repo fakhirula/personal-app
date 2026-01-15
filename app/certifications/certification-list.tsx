@@ -5,9 +5,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { Edit, Trash2 } from 'lucide-react';
+import { Edit, Trash2, ArrowUp, ArrowDown } from 'lucide-react';
+import { collection, onSnapshot, query, where } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 import type { Certification } from '@/types/portfolio';
-import { getCertifications, deleteCertification } from '@/lib/firestore';
+import { deleteCertification, updateCertification } from '@/lib/firestore';
 
 interface CertificationListProps {
   onEdit?: (certification: Certification) => void;
@@ -17,29 +19,65 @@ export function CertificationList({ onEdit }: CertificationListProps = {}) {
   const [items, setItems] = useState<Certification[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const refresh = async () => {
-    setLoading(true);
-    try {
-      const data = await getCertifications();
-      setItems(data);
-    } catch (err) {
-      toast.error('Failed to load certifications');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    refresh();
+    setLoading(true);
+    const q = query(collection(db, 'certifications'), where('isActive', '==', true));
+    const unsub = onSnapshot(
+      q,
+      (snapshot) => {
+        const data = snapshot.docs
+          .map((doc) => ({ id: doc.id, ...doc.data() } as Certification))
+          .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+        setItems(data);
+        setLoading(false);
+      },
+      () => {
+        setLoading(false);
+        toast.error('Failed to load certifications');
+      }
+    );
+
+    return () => unsub();
   }, []);
 
   const deactivate = async (id: string) => {
     try {
       await deleteCertification(id);
       toast.success('Certification archived');
-      refresh();
     } catch {
       toast.error('Failed to archive');
+    }
+  };
+
+  const moveUp = async (index: number) => {
+    if (index === 0) return;
+    try {
+      const itemToMove = items[index];
+      const itemAbove = items[index - 1];
+      
+      const orderAbove = itemAbove.order ?? (index - 1);
+      const orderToMove = itemToMove.order ?? index;
+      
+      await updateCertification(itemToMove.id!, { order: orderAbove });
+      await updateCertification(itemAbove.id!, { order: orderToMove });
+    } catch (err) {
+      toast.error('Failed to move item');
+    }
+  };
+
+  const moveDown = async (index: number) => {
+    if (index === items.length - 1) return;
+    try {
+      const itemToMove = items[index];
+      const itemBelow = items[index + 1];
+      
+      const orderBelow = itemBelow.order ?? (index + 1);
+      const orderToMove = itemToMove.order ?? index;
+      
+      await updateCertification(itemToMove.id!, { order: orderBelow });
+      await updateCertification(itemBelow.id!, { order: orderToMove });
+    } catch (err) {
+      toast.error('Failed to move item');
     }
   };
 
@@ -76,6 +114,22 @@ export function CertificationList({ onEdit }: CertificationListProps = {}) {
                       <Edit className="h-4 w-4" />
                     </Button>
                   )}
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => moveUp(items.indexOf(cert))}
+                    disabled={items.indexOf(cert) === 0}
+                  >
+                    <ArrowUp className="h-4 w-4" />
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => moveDown(items.indexOf(cert))}
+                    disabled={items.indexOf(cert) === items.length - 1}
+                  >
+                    <ArrowDown className="h-4 w-4" />
+                  </Button>
                   <Button variant="ghost" size="sm" onClick={() => deactivate(cert.id!)}>
                     <Trash2 className="h-4 w-4" />
                   </Button>

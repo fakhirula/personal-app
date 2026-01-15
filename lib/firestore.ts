@@ -9,6 +9,7 @@ import {
   deleteDoc,
   query,
   where,
+  orderBy,
 } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import {
@@ -16,6 +17,7 @@ import {
   Education,
   Experience,
   Certification,
+  WhatImDoing,
   Skill,
   Project,
   ContactMessage,
@@ -26,6 +28,7 @@ const COLLECTIONS = {
   education: 'education',
   experiences: 'experiences',
   certifications: 'certifications',
+  whatImDoing: 'whatImDoing',
   skills: 'skills',
   projects: 'projects',
   contactMessages: 'contactMessages',
@@ -47,7 +50,9 @@ export const updatePersonalInfo = async (data: PersonalInfo): Promise<void> => {
 export const getEducation = async (): Promise<Education[]> => {
   const q = query(collection(db, COLLECTIONS.education), where('isActive', '==', true));
   const querySnapshot = await getDocs(q);
-  return querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Education));
+  return querySnapshot.docs
+    .map((doc) => ({ id: doc.id, ...doc.data() } as Education))
+    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 };
 
 export const addEducation = async (data: Omit<Education, 'id'>): Promise<string> => {
@@ -68,14 +73,15 @@ export const deleteEducation = async (id: string): Promise<void> => {
 
 // Experiences
 export const getExperiences = async (type?: string): Promise<Experience[]> => {
-  let q = query(collection(db, COLLECTIONS.experiences), where('isActive', '==', true));
-  
-  if (type) {
-    q = query(q, where('type', '==', type));
-  }
-  
+  const constraints = [
+    where('isActive', '==', true),
+    ...(type ? [where('type', '==', type)] : []),
+  ];
+  const q = query(collection(db, COLLECTIONS.experiences), ...constraints);
   const querySnapshot = await getDocs(q);
-  return querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Experience));
+  return querySnapshot.docs
+    .map((doc) => ({ id: doc.id, ...doc.data() } as Experience))
+    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 };
 
 export const addExperience = async (data: Omit<Experience, 'id'>): Promise<string> => {
@@ -96,9 +102,14 @@ export const deleteExperience = async (id: string): Promise<void> => {
 
 // Certifications
 export const getCertifications = async (): Promise<Certification[]> => {
-  const q = query(collection(db, COLLECTIONS.certifications), where('isActive', '==', true));
+  const q = query(
+    collection(db, COLLECTIONS.certifications),
+    where('isActive', '==', true)
+  );
   const querySnapshot = await getDocs(q);
-  return querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Certification));
+  return querySnapshot.docs
+    .map((doc) => ({ id: doc.id, ...doc.data() } as Certification))
+    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 };
 
 export const addCertification = async (data: Omit<Certification, 'id'>): Promise<string> => {
@@ -120,11 +131,45 @@ export const deleteCertification = async (id: string): Promise<void> => {
   await updateDoc(docRef, { isActive: false });
 };
 
+// What I'm Doing
+export const getWhatImDoing = async (): Promise<WhatImDoing[]> => {
+  const q = query(
+    collection(db, COLLECTIONS.whatImDoing),
+    where('isActive', '==', true)
+  );
+  const querySnapshot = await getDocs(q);
+  return querySnapshot.docs
+    .map((doc) => ({ id: doc.id, ...doc.data() } as WhatImDoing))
+    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+};
+
+export const addWhatImDoing = async (data: Omit<WhatImDoing, 'id'>): Promise<string> => {
+  const docRef = doc(collection(db, COLLECTIONS.whatImDoing));
+  await setDoc(docRef, data);
+  return docRef.id;
+};
+
+export const updateWhatImDoing = async (id: string, data: Partial<WhatImDoing>): Promise<void> => {
+  const docRef = doc(db, COLLECTIONS.whatImDoing, id);
+  await updateDoc(docRef, data);
+};
+
+export const deleteWhatImDoing = async (id: string): Promise<void> => {
+  const docRef = doc(db, COLLECTIONS.whatImDoing, id);
+  await updateDoc(docRef, { isActive: false });
+};
+
 // Skills
 export const getSkills = async (): Promise<Skill[]> => {
-  const q = query(collection(db, COLLECTIONS.skills), where('isActive', '==', true));
+  const q = query(collection(db, COLLECTIONS.skills));
   const querySnapshot = await getDocs(q);
-  return querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Skill));
+  return querySnapshot.docs
+    .filter(doc => {
+      const data = doc.data();
+      return data.isActive !== false;
+    })
+    .map((doc) => ({ id: doc.id, ...doc.data() } as Skill))
+    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 };
 
 export const addSkill = async (data: Omit<Skill, 'id'>): Promise<string> => {
@@ -145,14 +190,15 @@ export const deleteSkill = async (id: string): Promise<void> => {
 
 // Projects
 export const getProjects = async (category?: string): Promise<Project[]> => {
-  let q = query(collection(db, COLLECTIONS.projects), where('isActive', '==', true));
-  
-  if (category) {
-    q = query(q, where('category', '==', category));
-  }
-  
+  const constraints = [
+    where('isActive', '==', true),
+    ...(category ? [where('category', '==', category)] : []),
+  ];
+  const q = query(collection(db, COLLECTIONS.projects), ...constraints);
   const querySnapshot = await getDocs(q);
-  return querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Project));
+  return querySnapshot.docs
+    .map((doc) => ({ id: doc.id, ...doc.data() } as Project))
+    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 };
 
 export const addProject = async (data: Omit<Project, 'id'>): Promise<string> => {

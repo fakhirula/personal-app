@@ -10,8 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Loader2, Mail, Phone, MapPin, Github, Linkedin, Instagram, Facebook, Code, Database, Palette, Globe, Server, Smartphone, Layout, GitBranch, Zap, Settings, BookOpen, Brain, ExternalLink, MessageCircle } from "lucide-react";
 import Image from "next/image";
-import { getPersonalInfo, getEducation, getExperiences, getCertifications, getSkills, getProjects } from "@/lib/firestore";
-import type { PersonalInfo, Education, Experience, Certification, Skill, Project } from "@/types/portfolio";
+import { getPersonalInfo, getEducation, getExperiences, getCertifications, getWhatImDoing, getSkills, getProjects } from "@/lib/firestore";
+import type { PersonalInfo, Education, Experience, Certification, WhatImDoing, Skill, Project } from "@/types/portfolio";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const formatMonthYear = (dateStr: string) => {
@@ -27,6 +27,7 @@ export default function Home() {
   const [education, setEducation] = useState<Education[]>([]);
   const [experience, setExperience] = useState<Experience[]>([]);
   const [certifications, setCertifications] = useState<Certification[]>([]);
+  const [whatImDoing, setWhatImDoing] = useState<WhatImDoing[]>([]);
   const [skills, setSkills] = useState<Skill[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
@@ -35,11 +36,12 @@ export default function Home() {
     const loadData = async () => {
       setLoading(true);
       try {
-        const [prof, edu, exp, cert, skillsList, projectsList] = await Promise.all([
+        const [prof, edu, exp, cert, whatDoing, skillsList, projectsList] = await Promise.all([
           getPersonalInfo(),
           getEducation(),
           getExperiences(),
           getCertifications(),
+          getWhatImDoing(),
           getSkills(),
           getProjects(),
         ]);
@@ -47,6 +49,7 @@ export default function Home() {
         setEducation(edu.sort((a, b) => parseInt(b.startDate) - parseInt(a.startDate)));
         setExperience(exp.sort((a, b) => parseInt(b.startDate) - parseInt(a.startDate)));
         setCertifications(cert);
+        setWhatImDoing(whatDoing);
         setSkills(skillsList);
         setProjects(projectsList);
       } catch (err) {
@@ -317,23 +320,23 @@ export default function Home() {
 
                     <div>
                       <h2 className="text-3xl font-semibold mb-6">What I'm Doing</h2>
-                      {skills.length === 0 ? (
-                        <p className="text-sm text-muted-foreground">Tambahkan skill di halaman admin untuk menampilkan.</p>
+                      {whatImDoing.length === 0 ? (
+                        <p className="text-sm text-muted-foreground">Tambahkan di halaman admin untuk menampilkan.</p>
                       ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {skills.map((skill) => {
-                            const IconComponent = ICON_MAP[skill.icon] || Code;
+                          {whatImDoing.map((item) => {
+                            const IconComponent = ICON_MAP[item.icon] || Code;
                             return (
-                              <Card key={skill.id}>
+                              <Card key={item.id}>
                                 <CardContent>
                                   <div className="flex gap-4">
                                     <div className="p-3 rounded-lg bg-secondary/50 h-fit">
                                       <IconComponent className="h-6 w-6 text-primary" />
                                     </div>
                                     <div className="flex-1">
-                                      <h3 className="font-semibold mb-1">{skill.name}</h3>
-                                      {skill.description && (
-                                        <p className="text-sm text-muted-foreground">{skill.description}</p>
+                                      <h3 className="font-semibold mb-1">{item.name}</h3>
+                                      {item.description && (
+                                        <p className="text-sm text-muted-foreground">{item.description}</p>
                                       )}
                                     </div>
                                   </div>
@@ -341,6 +344,25 @@ export default function Home() {
                               </Card>
                             );
                           })}
+                        </div>
+                      )}
+                    </div>
+
+                    <div>
+                      <h2 className="text-3xl font-semibold mb-6">Skills</h2>
+                      {skills.length === 0 ? (
+                        <p className="text-sm text-muted-foreground">Tambahkan skill di halaman admin untuk menampilkan.</p>
+                      ) : (
+                        <div className="space-y-4">
+                          {skills.map((skill) => (
+                            <div key={skill.id} className="flex items-center justify-between p-3 rounded-lg border hover:bg-secondary/20 transition-colors">
+                              <div>
+                                <p className="font-medium">{skill.name}</p>
+                                {skill.description && <p className="text-sm text-muted-foreground">{skill.description}</p>}
+                              </div>
+                              <Badge variant="secondary" className="text-xs flex-shrink-0">{skill.level}</Badge>
+                            </div>
+                          ))}
                         </div>
                       )}
                     </div>
